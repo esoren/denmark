@@ -29,6 +29,7 @@
 #include "queue.h"
 #include "input.h"
 #include "temperature.h"
+#include "dsp.h"
 
 extern QueueHandle_t xDisplayQueue;
 
@@ -145,6 +146,8 @@ void StartDefaultTask(void const * argument)
 
   displayMessage_t displayMessage;
 
+  set_dsp_mode(DSP_MODE_1);
+
   for(;;)
   {
 	  toggle = (toggle + 1) % 2;
@@ -152,7 +155,7 @@ void StartDefaultTask(void const * argument)
 
 
 	  displayMessage.displayCommand = SET_LED_STATE;
-	  displayMessage.modify_mask = 0xFFC0;
+	  displayMessage.modify_mask = 0x0000;
 
 
 	  if(toggle) {

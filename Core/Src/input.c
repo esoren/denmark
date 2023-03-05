@@ -12,6 +12,7 @@
 #include "queue.h"
 #include "gpio.h"
 #include "dsp.h"
+#include "fault.h"
 
 void StartInputTask(void const *argument) {
 
@@ -26,6 +27,11 @@ void StartInputTask(void const *argument) {
 
 		if(HAL_GPIO_ReadPin(BUTTON2_INPUT_GPIO_Port, BUTTON2_INPUT_Pin) == GPIO_PIN_RESET) {
 			next_dsp_mode();
+			osDelay(500);
+		}
+
+		if(HAL_GPIO_ReadPin(BUTTON4_INPUT_GPIO_Port, BUTTON4_INPUT_Pin) == GPIO_PIN_RESET) {
+			set_clear_fault_flags(FAULT_ALL, 0);
 			osDelay(500);
 		}
 
