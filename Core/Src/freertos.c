@@ -145,20 +145,19 @@ void StartDefaultTask(void const * argument)
 	  toggle = (toggle + 1) % 2;
 
 
-	  for(int i = 0; i < NUM_LEDS; i++) {
 
-		  displayMessage.displayCommand = SET_LED_STATE;
-		  displayMessage.modify_mask = 1<<i;
+	  displayMessage.displayCommand = SET_LED_STATE;
+	  displayMessage.modify_mask = 0xffff;
 
-		  if(toggle) {
-			  displayMessage.new_values = 0xffff;
-		  } else {
-			  displayMessage.new_values = 0;
-		  }
-		  xQueueSend(xDisplayQueue, &displayMessage, 0);
-
-		  osDelay(200);
+	  if(toggle) {
+		  displayMessage.new_values = 0xaaaa;
+	  } else {
+		  displayMessage.new_values = 0x5555;
 	  }
+	  xQueueSend(xDisplayQueue, &displayMessage, 0);
+
+	  osDelay(400);
+
 
 
 

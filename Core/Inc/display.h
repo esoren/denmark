@@ -13,7 +13,7 @@ void initialize_leds();
 void set_led_states(uint16_t led_state, uint16_t led_mask);
 
 
-#define NUM_BLINKS 3   //number of blinks to use when displaying the LED mask
+#define NUM_BLINKS 5   //number of blinks to use when displaying the LED mask
 
 #define NUM_LEDS 16
 enum {
@@ -36,6 +36,15 @@ enum {
 };
 
 
+enum E_mask_state {
+    ALL_ON,
+    STATUS,
+    STATUS_MODE,
+    STATUS_MODE_MON,
+    STATUS_MODE_FAULT,
+};
+
+void update_mask_state(void);
 
 typedef enum {
 	SET_LED_STATE=0,

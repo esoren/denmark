@@ -27,9 +27,6 @@ void StartDisplayTask(void const *argument)
 	const uint16_t led_state_all_on = 0xffff;
 	const uint16_t led_state_all_off	= 0;
 
-	uint16_t set_bits = 0;
-	uint16_t clear_bits = 0xffff;
-
 	initialize_leds();
 
 	led_state = led_state | LED_POWER_ON;
@@ -73,7 +70,7 @@ void StartDisplayTask(void const *argument)
 
 
 		set_led_states(led_state, led_mask);
-		osDelay(100);
+		osDelay(50);
 
 	}
 }
@@ -86,6 +83,63 @@ void initialize_leds()
 	return;
 }
 
+
+//this function manages the state of the LED outputs.
+//Each time Button 1 is pushed this function is called and it increments the state of
+void update_mask_state() {
+
+	static enum E_mask_state mask_state = ALL_ON;
+
+	displayMessage_t displayMessage;
+
+	displayMessage.displayCommand = SET_LED_MASK;
+	displayMessage.modify_mask = 0xffff;
+
+    switch(mask_state) {
+        case STATUS_MODE_FAULT:
+           	displayMessage.new_values = 0xffff;
+           	xQueueSend(xDisplayQueue, &displayMessage, 0);
+           	mask_state = ALL_ON;
+            break;
+
+        case ALL_ON:
+        	displayMessage.new_values = 0;
+        	displayMessage.new_values = displayMessage.new_values | (LED_POWER_ON | LED_STANDBY_ON);
+        	xQueueSend(xDisplayQueue, &displayMessage, 0);
+            mask_state = STATUS;
+            break;
+
+        case STATUS:
+        	displayMessage.new_values = 0;
+        	displayMessage.new_values = displayMessage.new_values | (LED_POWER_ON | LED_STANDBY_ON | LED_DSP_1 | LED_DSP_2 | LED_DSP_3 | LED_DSP_4);
+        	xQueueSend(xDisplayQueue, &displayMessage, 0);
+        	mask_state = STATUS_MODE;
+            break;
+
+        case STATUS_MODE:
+        	displayMessage.new_values = 0;
+            displayMessage.new_values = displayMessage.new_values | (LED_POWER_ON | LED_STANDBY_ON | LED_DSP_1 | LED_DSP_2 | LED_DSP_3 | LED_DSP_4
+            													 | LED_MONITOR_OVERTEMP | LED_MONITOR_CLIP | LED_MONITOR_PROTECT | LED_MONITOR_FAN);
+            xQueueSend(xDisplayQueue, &displayMessage, 0);
+        	mask_state = STATUS_MODE_MON;
+            break;
+
+        case STATUS_MODE_MON:
+        	displayMessage.new_values = 0;
+        	displayMessage.new_values = displayMessage.new_values | (LED_POWER_ON | LED_STANDBY_ON | LED_DSP_1 | LED_DSP_2 | LED_DSP_3 | LED_DSP_4
+        	   													 | LED_FAULT_HF_TEMP | LED_FAULT_MF_TEMP | LED_FAULT_LF_TEMP | LED_FAULT_CLIP
+																 | LED_FAULT_PROTECT | LED_FAULT_FAN);
+        	xQueueSend(xDisplayQueue, &displayMessage, 0);
+            mask_state = STATUS_MODE_FAULT;
+        	break;
+    }
+
+    displayMessage.displayCommand = BLINK_MASK;
+    displayMessage.modify_mask = 0;
+    displayMessage.new_values = 0;
+    xQueueSend(xDisplayQueue, &displayMessage, 0);
+
+}
 
 
 
