@@ -11,6 +11,7 @@
 #include "display.h"
 #include "queue.h"
 #include "gpio.h"
+#include "dsp.h"
 
 void StartInputTask(void const *argument) {
 
@@ -22,6 +23,13 @@ void StartInputTask(void const *argument) {
 			update_mask_state();
 			osDelay(500);
 		}
+
+		if(HAL_GPIO_ReadPin(BUTTON2_INPUT_GPIO_Port, BUTTON2_INPUT_Pin) == GPIO_PIN_RESET) {
+			cycle_dsp_mode();
+			osDelay(500);
+		}
+
+
 
 		osDelay(25);
 

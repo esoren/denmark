@@ -8,8 +8,15 @@
 #ifndef INC_DSP_H_
 #define INC_DSP_H_
 
+enum E_dsp_state {
+    DSP_MODE_1,
+    DSP_MODE_2,
+    DSP_MODE_3,
+    DSP_MODE_4
+};
 
-
+void next_dsp_mode();
+void set_dsp_mode(E_dsp_state new_dsp_state);
 
 
 #endif /* INC_DSP_H_ */

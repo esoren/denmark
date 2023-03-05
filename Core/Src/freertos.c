@@ -147,7 +147,8 @@ void StartDefaultTask(void const * argument)
 
 
 	  displayMessage.displayCommand = SET_LED_STATE;
-	  displayMessage.modify_mask = 0xffff;
+	  displayMessage.modify_mask = 0xFFC0;
+
 
 	  if(toggle) {
 		  displayMessage.new_values = 0xaaaa;
