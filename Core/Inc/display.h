@@ -10,7 +10,7 @@
 
 
 void initialize_leds();
-void set_led_states(uint16_t led_state, uint16_t led_mask) ;
+void set_led_states(uint16_t led_state, uint16_t led_mask);
 
 
 #define NUM_BLINKS 3   //number of blinks to use when displaying the LED mask

@@ -15,9 +15,8 @@ enum state {
     STATUS_MODE,
     STATUS_MODE_MON,
     STATUS_MODE_FAULT,
-    STATUS_FAULT
 };
 
-void transition(void);
+void update_mask(void);
 
 #endif /* INC_STATE_H_ */

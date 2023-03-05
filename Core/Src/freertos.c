@@ -27,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "display.h"
 #include "queue.h"
+#include "input.h"
 
 extern QueueHandle_t xDisplayQueue;
 
@@ -49,6 +50,8 @@ extern QueueHandle_t xDisplayQueue;
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 osThreadId displayTaskHandle;
+osThreadId inputTaskHandle;
+
 
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
@@ -89,6 +92,9 @@ void MX_FREERTOS_Init(void) {
 
 	osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 128);
 	displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
+
+	osThreadDef(inputTask, StartInputTask, osPriorityNormal, 0, 128);
+	inputTaskHandle = osThreadCreate(osThread(inputTask), NULL);
 
   /* USER CODE END Init */
 
