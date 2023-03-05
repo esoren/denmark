@@ -25,7 +25,7 @@ void StartInputTask(void const *argument) {
 		}
 
 		if(HAL_GPIO_ReadPin(BUTTON2_INPUT_GPIO_Port, BUTTON2_INPUT_Pin) == GPIO_PIN_RESET) {
-			cycle_dsp_mode();
+			next_dsp_mode();
 			osDelay(500);
 		}
 

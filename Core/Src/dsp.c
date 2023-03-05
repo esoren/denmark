@@ -55,7 +55,7 @@ void next_dsp_mode() {
 }
 
 
-void set_dsp_mode(E_dsp_state new_dsp_state) {
+void set_dsp_mode(int new_dsp_state) {
 
 
 	displayMessage_t displayMessage;
@@ -97,7 +97,7 @@ void set_dsp_mode(E_dsp_state new_dsp_state) {
  * There is no way to readback the state of the minidsp, so this should be called anytime the state is not known
  * for instance, at powerup.
  */
-void send_ir_dsp_command(E_dsp_state current_dsp_state) {
-	//todo: implement IR send functionality here
+void send_ir_dsp_command(int current_dsp_state) {
+	//todo: implement IR transmit functionality here
 	return;
 }

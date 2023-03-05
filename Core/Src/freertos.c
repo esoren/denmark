@@ -28,6 +28,7 @@
 #include "display.h"
 #include "queue.h"
 #include "input.h"
+#include "temperature.h"
 
 extern QueueHandle_t xDisplayQueue;
 
@@ -51,6 +52,7 @@ extern QueueHandle_t xDisplayQueue;
 /* USER CODE BEGIN Variables */
 osThreadId displayTaskHandle;
 osThreadId inputTaskHandle;
+osThreadId temperatureTaskHandle;
 
 
 /* USER CODE END Variables */
@@ -95,6 +97,9 @@ void MX_FREERTOS_Init(void) {
 
 	osThreadDef(inputTask, StartInputTask, osPriorityNormal, 0, 128);
 	inputTaskHandle = osThreadCreate(osThread(inputTask), NULL);
+
+	osThreadDef(temperatureTask, StartTemperatureTask, osPriorityNormal, 0, 128);
+	temperatureTaskHandle = osThreadCreate(osThread(temperatureTask), NULL);
 
   /* USER CODE END Init */
 

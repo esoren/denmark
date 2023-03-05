@@ -16,7 +16,7 @@ enum E_dsp_state {
 };
 
 void next_dsp_mode();
-void set_dsp_mode(E_dsp_state new_dsp_state);
-
+void set_dsp_mode(int new_dsp_state);
+void send_ir_dsp_command(int current_dsp_state);
 
 #endif /* INC_DSP_H_ */
