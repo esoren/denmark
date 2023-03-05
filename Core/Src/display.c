@@ -18,23 +18,21 @@ void StartDisplayTask(void const *argument)
 	displayMessage_t displayMessage;
 	BaseType_t xStatus;
 
-	uint8_t led_state[16]; 	//the current state of each LED. 0 = off, 1 = on
-	uint8_t led_mask[16];  	//the mask of each LED. 0 = off, 1 = on.
-							//if the mask is set to zero, the LED will not display even if the state is 1.
+	uint16_t led_state = 0; 		//the current state of each LED. 0 = off, 1 = on
+	uint16_t led_mask =  0xffff;  	//the mask of each LED. 0 = off, 1 = on.
+									//each led is represented by one bit.
+									//If the mask and state bits are both 1 the led will be turned on.
+									//otherwise it will be turned off.
 
-	const uint8_t led_state_all_on[16] 	= {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-	const uint8_t led_state_all_off[16]	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	const uint16_t led_state_all_on = 0xffff;
+	const uint16_t led_state_all_off	= 0;
 
-	for (int i = 0; i < NUM_LEDS; i++) //initialize all masks and states to zero
-	{
-		led_state[i] = 0;
-		led_mask[i] = 1;
-	}
+	uint16_t set_bits = 0;
+	uint16_t clear_bits = 0xffff;
 
 	initialize_leds();
 
-	led_state[LED_POWER_ON] = 1; //turn on the power LED by default
-	led_mask[LED_POWER_ON] = 1;
+	led_state = led_state | LED_POWER_ON;
 
 
 	for (;;)
@@ -46,24 +44,11 @@ void StartDisplayTask(void const *argument)
 			if (xStatus == pdPASS) {
 
 				switch (displayMessage.displayCommand) {
-				case SET_STATE:
-
-					if(displayMessage.led_name >= NUM_LEDS) {
-						break; //invalid LED
-					} else {
-						led_state[displayMessage.led_name] = displayMessage.new_state;
-					}
-
+				case SET_LED_STATE:
+					led_state = (led_state & ~displayMessage.modify_mask) | (displayMessage.modify_mask & displayMessage.new_values);
 					break;
-
-				case SET_MASK:
-
-					if(displayMessage.led_name >= NUM_LEDS) {
-						break; //invalid LED
-					} else {
-						led_mask[displayMessage.led_name] = displayMessage.new_state;
-					}
-
+				case SET_LED_MASK:
+					led_mask = (led_mask & ~displayMessage.modify_mask) | (displayMessage.modify_mask & displayMessage.new_values);
 					break;
 
 				case SET_FADE:
@@ -113,99 +98,100 @@ void initialize_leds()
 //todo: consider using a macro define to make this more readable
 
 
-void set_led_states(uint8_t led_state[], uint8_t led_mask[])
+void set_led_states(uint16_t led_state, uint16_t led_mask)
 {
-	if (led_state[LED_POWER_ON] && led_mask[LED_POWER_ON] ) {
+	uint16_t led_on = led_state & led_mask;
+	if (led_on & LED_POWER_ON) {
 		HAL_GPIO_WritePin(LED_STATUS_1_GPIO_Port, LED_STATUS_1_Pin, GPIO_PIN_SET);
 	} else {
 		HAL_GPIO_WritePin(LED_STATUS_1_GPIO_Port, LED_STATUS_1_Pin, GPIO_PIN_RESET);
 	}
 
-	if (led_state[LED_STANDBY_ON] && led_mask[LED_STANDBY_ON] ) {
+	if (led_on & LED_STANDBY_ON) {
 		HAL_GPIO_WritePin(LED_STATUS_2_GPIO_Port, LED_STATUS_2_Pin, GPIO_PIN_SET);
 	} else {
 		HAL_GPIO_WritePin(LED_STATUS_2_GPIO_Port, LED_STATUS_2_Pin, GPIO_PIN_RESET);
 	}
 
-	if (led_state[LED_DSP_1] && led_mask[LED_DSP_1] ) {
+	if (led_on & LED_DSP_1) {
 		HAL_GPIO_WritePin(LED_MODE_1_GPIO_Port, LED_MODE_1_Pin, GPIO_PIN_SET);
 	} else {
 		HAL_GPIO_WritePin(LED_MODE_1_GPIO_Port, LED_MODE_1_Pin, GPIO_PIN_RESET);
 	}
 
-	if (led_state[LED_DSP_2] && led_mask[LED_DSP_2] ) {
+	if (led_on & LED_DSP_2) {
 		HAL_GPIO_WritePin(LED_MODE_2_GPIO_Port, LED_MODE_2_Pin, GPIO_PIN_SET);
 	} else {
 		HAL_GPIO_WritePin(LED_MODE_2_GPIO_Port, LED_MODE_2_Pin, GPIO_PIN_RESET);
 	}
 
-	if (led_state[LED_DSP_3] && led_mask[LED_DSP_3] ) {
+	if (led_on & LED_DSP_3) {
 		HAL_GPIO_WritePin(LED_MODE_3_GPIO_Port, LED_MODE_3_Pin, GPIO_PIN_SET);
 	} else {
 		HAL_GPIO_WritePin(LED_MODE_3_GPIO_Port, LED_MODE_3_Pin, GPIO_PIN_RESET);
 	}
 
-	if (led_state[LED_DSP_4] && led_mask[LED_DSP_4] ) {
+	if (led_on & LED_DSP_4) {
 		HAL_GPIO_WritePin(LED_MODE_4_GPIO_Port, LED_MODE_4_Pin, GPIO_PIN_SET);
 	} else {
 		HAL_GPIO_WritePin(LED_MODE_4_GPIO_Port, LED_MODE_4_Pin, GPIO_PIN_RESET);
 	}
 
-	if (led_state[LED_MONITOR_OVERTEMP] && led_mask[LED_MONITOR_OVERTEMP] ) {
+	if (led_on & LED_MONITOR_OVERTEMP) {
 		HAL_GPIO_WritePin(LED_MONITOR_1_GPIO_Port, LED_MONITOR_1_Pin, GPIO_PIN_SET);
 	} else {
 		HAL_GPIO_WritePin(LED_MONITOR_1_GPIO_Port, LED_MONITOR_1_Pin, GPIO_PIN_RESET);
 	}
 
-	if (led_state[LED_MONITOR_CLIP] && led_mask[LED_MONITOR_CLIP] ) {
+	if (led_on & LED_MONITOR_CLIP) {
 		HAL_GPIO_WritePin(LED_MONITOR_2_GPIO_Port, LED_MONITOR_2_Pin, GPIO_PIN_SET);
 	} else {
 		HAL_GPIO_WritePin(LED_MONITOR_2_GPIO_Port, LED_MONITOR_2_Pin, GPIO_PIN_RESET);
 	}
 
-	if (led_state[LED_MONITOR_PROTECT] && led_mask[LED_MONITOR_PROTECT] ) {
+	if (led_on & LED_MONITOR_PROTECT) {
 		HAL_GPIO_WritePin(LED_MONITOR_3_GPIO_Port, LED_MONITOR_3_Pin, GPIO_PIN_SET);
 	} else {
 		HAL_GPIO_WritePin(LED_MONITOR_3_GPIO_Port, LED_MONITOR_3_Pin, GPIO_PIN_RESET);
 	}
 
-	if (led_state[LED_MONITOR_FAN] && led_mask[LED_MONITOR_FAN] ) {
+	if (led_on & LED_MONITOR_FAN) {
 		HAL_GPIO_WritePin(LED_MONITOR_4_GPIO_Port, LED_MONITOR_4_Pin, GPIO_PIN_SET);
 	} else {
 		HAL_GPIO_WritePin(LED_MONITOR_4_GPIO_Port, LED_MONITOR_4_Pin, GPIO_PIN_RESET);
 	}
 
-	if (led_state[LED_FAULT_HF_TEMP] && led_mask[LED_FAULT_HF_TEMP] ) {
+	if (led_on & LED_FAULT_HF_TEMP) {
 		HAL_GPIO_WritePin(LED_FAULT_1_GPIO_Port, LED_FAULT_1_Pin, GPIO_PIN_SET);
 	} else {
 		HAL_GPIO_WritePin(LED_FAULT_1_GPIO_Port, LED_FAULT_1_Pin, GPIO_PIN_RESET);
 	}
 
-	if (led_state[LED_FAULT_MF_TEMP] && led_mask[LED_FAULT_MF_TEMP] ) {
+	if (led_on & LED_FAULT_MF_TEMP) {
 		HAL_GPIO_WritePin(LED_FAULT_2_GPIO_Port, LED_FAULT_2_Pin, GPIO_PIN_SET);
 	} else {
 		HAL_GPIO_WritePin(LED_FAULT_2_GPIO_Port, LED_FAULT_2_Pin, GPIO_PIN_RESET);
 	}
 
-	if (led_state[LED_FAULT_LF_TEMP] && led_mask[LED_FAULT_LF_TEMP] ) {
+	if (led_on & LED_FAULT_LF_TEMP) {
 		HAL_GPIO_WritePin(LED_FAULT_3_GPIO_Port, LED_FAULT_3_Pin, GPIO_PIN_SET);
 	} else {
 		HAL_GPIO_WritePin(LED_FAULT_3_GPIO_Port, LED_FAULT_3_Pin, GPIO_PIN_RESET);
 	}
 
-	if (led_state[LED_FAULT_CLIP] && led_mask[LED_FAULT_CLIP] ) {
+	if (led_on & LED_FAULT_CLIP) {
 		HAL_GPIO_WritePin(LED_FAULT_4_GPIO_Port, LED_FAULT_4_Pin, GPIO_PIN_SET);
 	} else {
 		HAL_GPIO_WritePin(LED_FAULT_4_GPIO_Port, LED_FAULT_4_Pin, GPIO_PIN_RESET);
 	}
 
-	if (led_state[LED_FAULT_PROTECT] && led_mask[LED_FAULT_PROTECT] ) {
+	if (led_on & LED_FAULT_PROTECT) {
 		HAL_GPIO_WritePin(LED_FAULT_5_GPIO_Port, LED_FAULT_5_Pin, GPIO_PIN_SET);
 	} else {
 		HAL_GPIO_WritePin(LED_FAULT_5_GPIO_Port, LED_FAULT_5_Pin, GPIO_PIN_RESET);
 	}
 
-	if (led_state[LED_FAULT_FAN] && led_mask[LED_FAULT_FAN] ) {
+	if (led_on & LED_FAULT_FAN) {
 		HAL_GPIO_WritePin(LED_FAULT_6_GPIO_Port, LED_FAULT_6_Pin, GPIO_PIN_SET);
 	} else {
 		HAL_GPIO_WritePin(LED_FAULT_6_GPIO_Port, LED_FAULT_6_Pin, GPIO_PIN_RESET);

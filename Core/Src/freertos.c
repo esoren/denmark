@@ -130,18 +130,25 @@ void StartDefaultTask(void const * argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
-  uint8_t on_off_flag = 0;
+  uint8_t toggle = 0;
+
   displayMessage_t displayMessage;
 
   for(;;)
   {
-	  on_off_flag = (on_off_flag + 1) % 2;
+	  toggle = (toggle + 1) % 2;
+
 
 	  for(int i = 0; i < NUM_LEDS; i++) {
 
-		  displayMessage.displayCommand = SET_STATE;
-		  displayMessage.led_name = i;
-		  displayMessage.new_state = on_off_flag;
+		  displayMessage.displayCommand = SET_LED_STATE;
+		  displayMessage.modify_mask = 1<<i;
+
+		  if(toggle) {
+			  displayMessage.new_values = 0xffff;
+		  } else {
+			  displayMessage.new_values = 0;
+		  }
 		  xQueueSend(xDisplayQueue, &displayMessage, 0);
 
 		  osDelay(200);
