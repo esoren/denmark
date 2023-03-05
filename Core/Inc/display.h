@@ -13,6 +13,8 @@ void initialize_leds();
 void set_led_states(uint8_t led_state[], uint8_t led_mask[]) ;
 
 
+#define NUM_BLINKS 3   //number of blinks to use when displaying the LED mask
+
 #define NUM_LEDS 16
 enum {
 	LED_POWER_ON=0, 		//LED_STATUS_1
@@ -45,8 +47,7 @@ typedef enum {
 
 typedef struct {
 	EDisplayCommand displayCommand;
-	int indicator;
-	uint8_t new_state;
+	uint8_t new_states[NUM_LEDS];
 } displayMessage_t;
 
 void StartDisplayTask(void const * argument);

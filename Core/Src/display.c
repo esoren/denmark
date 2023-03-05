@@ -22,11 +22,13 @@ void StartDisplayTask(void const *argument)
 	uint8_t led_mask[16];  	//the mask of each LED. 0 = off, 1 = on.
 							//if the mask is set to zero, the LED will not display even if the state is 1.
 
+	const uint8_t led_state_all_on[16] 	= {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+	const uint8_t led_state_all_off[16]	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 	for (int i = 0; i < NUM_LEDS; i++) //initialize all masks and states to zero
 	{
 		led_state[i] = 0;
-		led_mask[i] = 0;
+		led_mask[i] = 1;
 	}
 
 	initialize_leds();
@@ -45,12 +47,39 @@ void StartDisplayTask(void const *argument)
 
 				switch (displayMessage.displayCommand) {
 				case SET_STATE:
+
+					if(displayMessage.led_name >= NUM_LEDS) {
+						break; //invalid LED
+					} else {
+						led_state[displayMessage.led_name] = displayMessage.new_state;
+					}
+
 					break;
+
 				case SET_MASK:
+
+					if(displayMessage.led_name >= NUM_LEDS) {
+						break; //invalid LED
+					} else {
+						led_mask[displayMessage.led_name] = displayMessage.new_state;
+					}
+
 					break;
+
 				case SET_FADE:
+					//todo: implement PWM adjustment for fade level of user leds
+
 					break;
+
 				case BLINK_MASK:
+					for (int i = 0; i < NUM_BLINKS; i++) {
+						set_led_states(led_state_all_on, led_mask);
+						osDelay(50);
+						set_led_states(led_state_all_off, led_mask);
+						osDelay(50);
+					}
+
+
 					break;
 				}
 			}
