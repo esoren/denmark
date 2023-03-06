@@ -17,5 +17,7 @@ void set_fan_rpm(uint16_t rpm);
 #define RPM_ADJ					50
 
 #define DEFAULT_FAN_RPM			1500
+#define FAN_FAULT_MARGIN		200 //fault if the fan RPM is this many RPMs below the target
 
+#define TIMER_CLK				84000000
 #endif /* INC_FAN_H_ */
