@@ -30,6 +30,7 @@
 #include "input.h"
 #include "temperature.h"
 #include "dsp.h"
+#include "fan.h"
 
 extern QueueHandle_t xDisplayQueue;
 
@@ -54,7 +55,7 @@ extern QueueHandle_t xDisplayQueue;
 osThreadId displayTaskHandle;
 osThreadId inputTaskHandle;
 osThreadId temperatureTaskHandle;
-
+osThreadId fanTaskHandle;
 
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
@@ -101,6 +102,9 @@ void MX_FREERTOS_Init(void) {
 
 	osThreadDef(temperatureTask, StartTemperatureTask, osPriorityNormal, 0, 128);
 	temperatureTaskHandle = osThreadCreate(osThread(temperatureTask), NULL);
+
+	osThreadDef(fanTask, StartFanTask, osPriorityNormal, 0, 128);
+	fanTaskHandle = osThreadCreate(osThread(fanTask), NULL);
 
   /* USER CODE END Init */
 
