@@ -34,7 +34,7 @@
 
 extern QueueHandle_t xDisplayQueue;
 extern QueueHandle_t xTemperatureQueue;
-
+extern QueueHandle_t xFanQueue;
 
 /* USER CODE END Includes */
 
@@ -94,9 +94,14 @@ void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackTy
   */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
+
+
+	//QUEUES
 	xDisplayQueue = xQueueCreate(30, sizeof(displayMessage_t));
 	xTemperatureQueue = xQueueCreate(30, sizeof(uint8_t));
+	xFanQueue = xQueueCreate(30, sizeof(uint8_t));
 
+	//TASKS
 	osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 128);
 	displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
 
@@ -152,6 +157,12 @@ void StartDefaultTask(void const * argument)
   uint8_t toggle = 0;
 
   displayMessage_t displayMessage;
+
+  uint8_t temperatureMessage = TEMPERATURE_MONITOR_START;
+  xQueueSend(xTemperatureQueue, &temperatureMessage, 0);
+
+  uint8_t fanMessage = FAN_MONITOR_START;
+  xQueueSend(xFanQueue, &fanMessage, 0);
 
   set_dsp_mode(DSP_MODE_1);
 

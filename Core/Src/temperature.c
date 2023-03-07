@@ -43,9 +43,9 @@ void StartTemperatureTask(void const *argument) {
 		if (uxQueueMessagesWaiting(xTemperatureQueue) > 0) {
 			xStatus = xQueueReceive(xTemperatureQueue, &temperatureMessage, 0);
 			if (xStatus == pdPASS) {
-				if(temperatureMessage == TEMP_MONITOR_START) {
+				if(temperatureMessage == TEMPERATURE_MONITOR_START) {
 					temperature_monitor_is_running = 1;
-				} else if(temperatureMessage == TEMP_MONITOR_STOP) {
+				} else if(temperatureMessage == TEMPERATURE_MONITOR_STOP) {
 					temperature_monitor_is_running = 0;
 				} else {
 					//should not reach here. Do nothing.

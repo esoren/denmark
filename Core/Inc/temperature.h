@@ -24,8 +24,8 @@
 
 
 enum {
-	TEMP_MONITOR_START,
-	TEMP_MONITOR_STOP
+	TEMPERATURE_MONITOR_START,
+	TEMPERATURE_MONITOR_STOP
 };
 
 void StartTemperatureTask(void const *argument);

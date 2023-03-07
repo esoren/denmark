@@ -13,7 +13,10 @@
 #include "fault.h"
 
 extern QueueHandle_t xDisplayQueue;
-volatile uint32_t fan_rpm;
+
+QueueHandle_t xFanQueue;
+volatile uint32_t fan_rpm; //global variable continually set by the TIMER5 IC callback
+
 
 void StartFanTask(void const *argument) {
 
@@ -29,27 +32,47 @@ void StartFanTask(void const *argument) {
 
 	displayMessage_t displayMessage;
 
+	uint8_t fanMessage;
+	uint8_t fan_monitor_is_running = 0; //if this flag is set, the fan monitor will run
+
+	BaseType_t xStatus;
 
 	for (;;)
 	{
 
-		//todo: consider modifying this to only send a display message if the fan state has changed
-		displayMessage.displayCommand = SET_LED_STATE;
-		displayMessage.modify_mask = LED_MONITOR_FAN;
-
-		if(fan_rpm < DEFAULT_FAN_RPM - FAN_FAULT_MARGIN) {
-			displayMessage.new_values = 0xffff;
-			xQueueSend(xDisplayQueue, &displayMessage, 0);
-
-			set_clear_fault_flags(FAULT_FAN, 1);
-
-		} else {
-			displayMessage.new_values = 0x0000;
-			xQueueSend(xDisplayQueue, &displayMessage, 0);
+		if (uxQueueMessagesWaiting(xFanQueue) > 0) {
+			xStatus = xQueueReceive(xFanQueue, &fanMessage, 0);
+			if (xStatus == pdPASS) {
+				if(fanMessage == FAN_MONITOR_START) {
+					fan_monitor_is_running = 1;
+				} else if(fanMessage == FAN_MONITOR_STOP) {
+					fan_monitor_is_running = 0;
+				} else {
+					//should not reach here. Do nothing.
+				}
+			}
 		}
 
-		osDelay(200);
+		//todo: consider modifying this to only send a display message if the fan state has changed
+		if(fan_monitor_is_running) {
+			displayMessage.displayCommand = SET_LED_STATE;
+			displayMessage.modify_mask = LED_MONITOR_FAN;
 
+			if(fan_rpm < DEFAULT_FAN_RPM - FAN_FAULT_MARGIN) {
+				displayMessage.new_values = 0xffff;
+				xQueueSend(xDisplayQueue, &displayMessage, 0);
+
+				set_clear_fault_flags(FAULT_FAN, 1);
+
+			} else {
+				displayMessage.new_values = 0x0000;
+				xQueueSend(xDisplayQueue, &displayMessage, 0);
+			}
+
+			osDelay(FAN_SAMPLE_TIME_MS);
+		} else {
+			osDelay(FAN_STARTUP_MONITOR_TIME_MS);
+		}
 	}
 
 
