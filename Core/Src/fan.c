@@ -20,9 +20,11 @@ volatile uint32_t fan_rpm; //global variable continually set by the TIMER5 IC ca
 
 void StartFanTask(void const *argument) {
 
+	uint16_t target_fan_rpm = DEFAULT_FAN_RPM;
+
 	//start PWM output timer
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-	set_fan_rpm(DEFAULT_FAN_RPM);
+	set_fan_rpm(target_fan_rpm);
 
 	//start timer for input compare frequency measurement
 	HAL_TIM_Base_Start_IT(&htim5);
@@ -34,6 +36,7 @@ void StartFanTask(void const *argument) {
 
 	uint8_t fanMessage;
 	uint8_t fan_monitor_is_running = 0; //if this flag is set, the fan monitor will run
+
 
 	BaseType_t xStatus;
 
@@ -81,6 +84,11 @@ void StartFanTask(void const *argument) {
 
 void set_fan_rpm(uint16_t rpm) {
 
+	if(rpm == 0) {
+		TIM1->CCR1 = 0;  //handle the special case of turning off the fan first
+		return;
+	}
+
 	rpm = rpm + RPM_ADJ; //apply an experimental offset (in Hz) to the target RPM
 
 	float duty_cycle_percent = 100;
@@ -99,7 +107,7 @@ void set_fan_rpm(uint16_t rpm) {
 	pwm_on_cycles = duty_cycle_percent / 100 * FAN_PERIOD_CYCLES;
 
 	TIM1->CCR1 = pwm_on_cycles;
-
+	return;
 
 }
 
