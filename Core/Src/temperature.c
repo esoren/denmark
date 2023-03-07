@@ -14,6 +14,8 @@
 #include "fault.h"
 
 
+QueueHandle_t xTemperatureQueue;
+
 extern QueueHandle_t xDisplayQueue;
 
 
@@ -26,43 +28,69 @@ void StartTemperatureTask(void const *argument) {
 
 	float therm1, therm2, therm3;
 
+	uint8_t temperatureMessage;
+	uint8_t temperature_monitor_is_running = 0; //if this flag is set, the temperature monitor will run
+
 	displayMessage_t displayMessage;
+
+	BaseType_t xStatus;
+
 
 	for(;;)
 	{
 
-		therm1 = convert_adc_count_to_degrees_celcius(adc_values[0], T1_BETA);
-		therm2 = convert_adc_count_to_degrees_celcius(adc_values[1], T2_BETA);
-		therm3 = convert_adc_count_to_degrees_celcius(adc_values[2], T3_BETA);
 
-		displayMessage.displayCommand = SET_LED_STATE;
-		displayMessage.modify_mask = LED_MONITOR_OVERTEMP;
+		if (uxQueueMessagesWaiting(xTemperatureQueue) > 0) {
+			xStatus = xQueueReceive(xTemperatureQueue, &temperatureMessage, 0);
+			if (xStatus == pdPASS) {
+				if(temperatureMessage == TEMP_MONITOR_START) {
+					temperature_monitor_is_running = 1;
+				} else if(temperatureMessage == TEMP_MONITOR_STOP) {
+					temperature_monitor_is_running = 0;
+				} else {
+					//should not reach here. Do nothing.
+				}
+			}
+		}
+
+		if(temperature_monitor_is_running) {
+
+			therm1 = convert_adc_count_to_degrees_celcius(adc_values[0], T1_BETA);
+			therm2 = convert_adc_count_to_degrees_celcius(adc_values[1], T2_BETA);
+			therm3 = convert_adc_count_to_degrees_celcius(adc_values[2], T3_BETA);
+
+			displayMessage.displayCommand = SET_LED_STATE;
+			displayMessage.modify_mask = LED_MONITOR_OVERTEMP;
 
 
-		if( (therm1 > T1_OVERHEAT_THRESH) || (therm2 > T2_OVERHEAT_THRESH) || (therm3 > T3_OVERHEAT_THRESH) )
-		{
-			displayMessage.new_values = 0xffff;
+			if( (therm1 > T1_OVERHEAT_THRESH) || (therm2 > T2_OVERHEAT_THRESH) || (therm3 > T3_OVERHEAT_THRESH) )
+			{
+				displayMessage.new_values = 0xffff;
+			} else {
+				displayMessage.new_values = 0;
+			}
+
+			xQueueSend(xDisplayQueue, &displayMessage, 0);
+
+			if( therm1 > T1_OVERHEAT_THRESH ) {
+				set_clear_fault_flags(FAULT_HF_TEMP, 1);
+			}
+
+			if( therm2 > T2_OVERHEAT_THRESH ) {
+				set_clear_fault_flags(FAULT_MF_TEMP, 1);
+			}
+
+			if( therm3 > T3_OVERHEAT_THRESH ) {
+				set_clear_fault_flags(FAULT_LF_TEMP, 1);
+			}
+
+			osDelay(TEMPERATURE_SAMPLE_TIME_MS);
+
 		} else {
-			displayMessage.new_values = 0;
-		}
-
-		xQueueSend(xDisplayQueue, &displayMessage, 0);
-
-		if( therm1 > T1_OVERHEAT_THRESH ) {
-			set_clear_fault_flags(FAULT_HF_TEMP, 1);
-		}
-
-		if( therm2 > T2_OVERHEAT_THRESH ) {
-			set_clear_fault_flags(FAULT_MF_TEMP, 1);
-		}
-
-		if( therm3 > T3_OVERHEAT_THRESH ) {
-			set_clear_fault_flags(FAULT_LF_TEMP, 1);
+			osDelay(TEMPERATURE_STARTUP_MONITOR_TIME_MS);
 		}
 
 
-
-		osDelay(TEMPERATURE_SAMPLE_TIME_MS);
 	}
 
 }

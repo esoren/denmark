@@ -33,6 +33,8 @@
 #include "fan.h"
 
 extern QueueHandle_t xDisplayQueue;
+extern QueueHandle_t xTemperatureQueue;
+
 
 /* USER CODE END Includes */
 
@@ -93,6 +95,7 @@ void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackTy
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 	xDisplayQueue = xQueueCreate(30, sizeof(displayMessage_t));
+	xTemperatureQueue = xQueueCreate(30, sizeof(uint8_t));
 
 	osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 128);
 	displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
