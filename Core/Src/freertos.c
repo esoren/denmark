@@ -36,6 +36,7 @@
 extern QueueHandle_t xDisplayQueue;
 extern QueueHandle_t xTemperatureQueue;
 extern QueueHandle_t xFanQueue;
+extern QueueHandle_t xPowerQueue;
 
 /* USER CODE END Includes */
 
@@ -103,6 +104,7 @@ void MX_FREERTOS_Init(void) {
 	xDisplayQueue = xQueueCreate(30, sizeof(displayMessage_t));
 	xTemperatureQueue = xQueueCreate(30, sizeof(uint8_t));
 	xFanQueue = xQueueCreate(30, sizeof(uint8_t));
+	xPowerQueue = xQueueCreate(30, sizeof(uint8_t));
 
 	//TASKS
 	osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 128);
@@ -160,17 +162,12 @@ void StartDefaultTask(void const * argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
-  uint8_t toggle = 0;
-
-  displayMessage_t displayMessage;
-
-
 
 
 
   for(;;)
   {
-	  toggle = (toggle + 1) % 2;
+
 	  osDelay(400);
 
   }

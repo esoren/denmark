@@ -14,19 +14,23 @@
 #include "dsp.h"
 #include "fault.h"
 #include "temperature.h"
+#include "power.h"
 
 extern QueueHandle_t xTemperatureQueue;
+extern QueueHandle_t xPowerQueue;
 
 void StartInputTask(void const *argument) {
 
-
+	uint8_t powerMessage;
 
 	for (;;)
 	{
 		//todo: add proper debouncing
 
 		if(HAL_GPIO_ReadPin(BUTTON1_INPUT_GPIO_Port, BUTTON1_INPUT_Pin) == GPIO_PIN_RESET) {
-			//todo: placeholder for toggle standby
+			powerMessage = POWER_TOGGLE_STANDBY;
+			xQueueSend(xPowerQueue, &powerMessage,0);
+			osDelay(500);
 		}
 
 		if(HAL_GPIO_ReadPin(BUTTON2_INPUT_GPIO_Port, BUTTON2_INPUT_Pin) == GPIO_PIN_RESET) {
