@@ -31,6 +31,7 @@
 #include "temperature.h"
 #include "dsp.h"
 #include "fan.h"
+#include "power.h"
 
 extern QueueHandle_t xDisplayQueue;
 extern QueueHandle_t xTemperatureQueue;
@@ -58,6 +59,8 @@ osThreadId displayTaskHandle;
 osThreadId inputTaskHandle;
 osThreadId temperatureTaskHandle;
 osThreadId fanTaskHandle;
+osThreadId powerTaskHandle;
+
 
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
@@ -114,6 +117,9 @@ void MX_FREERTOS_Init(void) {
 	osThreadDef(fanTask, StartFanTask, osPriorityNormal, 0, 128);
 	fanTaskHandle = osThreadCreate(osThread(fanTask), NULL);
 
+	osThreadDef(powerTask, StartPowerTask, osPriorityNormal, 0, 128);
+	powerTaskHandle = osThreadCreate(osThread(powerTask), NULL);
+
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -158,36 +164,14 @@ void StartDefaultTask(void const * argument)
 
   displayMessage_t displayMessage;
 
-  uint8_t temperatureMessage = TEMPERATURE_MONITOR_START;
-  xQueueSend(xTemperatureQueue, &temperatureMessage, 0);
 
-  uint8_t fanMessage = FAN_MONITOR_START;
-  xQueueSend(xFanQueue, &fanMessage, 0);
 
-  set_dsp_mode(DSP_MODE_1);
+
 
   for(;;)
   {
 	  toggle = (toggle + 1) % 2;
-
-
-
-	  displayMessage.displayCommand = SET_LED_STATE;
-	  displayMessage.modify_mask = 0x0000;
-
-
-	  if(toggle) {
-		  displayMessage.new_values = 0xaaaa;
-	  } else {
-		  displayMessage.new_values = 0x5555;
-	  }
-	  xQueueSend(xDisplayQueue, &displayMessage, 0);
-
 	  osDelay(400);
-
-
-
-
 
   }
   /* USER CODE END StartDefaultTask */
