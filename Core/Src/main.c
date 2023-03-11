@@ -75,7 +75,7 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-
+  HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -98,8 +98,11 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
+  setup_ir_transmitter();
 
-
+  while(1) {
+      ir_send_message(0x175);
+  }
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
