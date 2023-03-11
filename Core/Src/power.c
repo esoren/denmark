@@ -153,6 +153,7 @@ uint8_t enter_power_state_amps_on(void) {
 
 
 void pup_sequence() {
+	uint8_t dsp_mode = DSP_MODE_1;
 
 	displayMessage_t displayMessage;
 
@@ -163,7 +164,7 @@ void pup_sequence() {
 	xQueueSend(xDisplayQueue, &displayMessage, 0);
 	osDelay(500);
 
-	//load dsp state from FRAM
+	dsp_mode = fram_read_dsp_mode();
 	// load source select from FRAM
 	displayMessage.displayCommand = SET_LED_STATE;
 	displayMessage.modify_mask = LED_MONITOR_CLIP;
@@ -172,7 +173,7 @@ void pup_sequence() {
 
 	osDelay(500); //wait for DSP to finish bootup
 
-	set_dsp_mode(DSP_MODE_1); //write DSP state
+	set_dsp_mode(dsp_mode); //write DSP state
 	//write source select
 	displayMessage.displayCommand = SET_LED_STATE;
 	displayMessage.modify_mask = LED_MONITOR_PROTECT;

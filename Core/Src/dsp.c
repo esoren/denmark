@@ -10,6 +10,7 @@
 #include "display.h"
 #include "freertos.h"
 #include "queue.h"
+#include "fram.h"
 
 extern QueueHandle_t xDisplayQueue;
 
@@ -51,11 +52,11 @@ void next_dsp_mode() {
 
  	xQueueSend(xDisplayQueue, &displayMessage, 0);
  	send_ir_dsp_command(current_dsp_state);
-
+ 	fram_write_dsp_mode(current_dsp_state);
 }
 
 
-void set_dsp_mode(int new_dsp_state) {
+void set_dsp_mode(uint8_t new_dsp_state) {
 
 
 	displayMessage_t displayMessage;
@@ -87,6 +88,7 @@ void set_dsp_mode(int new_dsp_state) {
 
  	xQueueSend(xDisplayQueue, &displayMessage, 0);
  	send_ir_dsp_command(current_dsp_state);
+ 	fram_write_dsp_mode(current_dsp_state);
 
 }
 
