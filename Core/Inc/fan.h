@@ -9,11 +9,12 @@
 #define INC_FAN_H_
 
 void StartFanTask(void const *argument);
-void set_fan_rpm(uint16_t rpm);
+uint16_t set_fan_rpm(uint16_t rpm);
 
 #define FAN_PERIOD_CYCLES 		3360
 #define MIN_DUTY_CYCLE_PERCENT 	20
 #define MAX_FAN_RPM				3000
+#define NOMINAL_FAN_RPM			1500
 #define RPM_ADJ					50
 
 #define DEFAULT_FAN_RPM			1500
@@ -24,7 +25,10 @@ void set_fan_rpm(uint16_t rpm);
 
 enum {
 	FAN_MONITOR_START,
-	FAN_MONITOR_STOP
+	FAN_MONITOR_STOP,
+	FAN_SET_SPEED_MAX,
+	FAN_SET_SPEED_NOMINAL,
+	FAN_SET_SPEED_OFF
 };
 
 #define TIMER_CLK				84000000

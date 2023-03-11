@@ -88,6 +88,7 @@ uint8_t enter_power_state_standby(void) {
 	displayMessage.modify_mask = LED_STANDBY_ON;
 	displayMessage.new_values = 0xffff;
 	xQueueSend(xDisplayQueue, &displayMessage, 0);
+
 	osDelay(100);
 
 	set_clear_amp_mute(HF_AMP, MUTE_ON);
@@ -103,6 +104,9 @@ uint8_t enter_power_state_standby(void) {
 	xQueueSend(xTemperatureQueue, &temperatureMessage, 0);
 
 	fanMessage = FAN_MONITOR_STOP;
+	xQueueSend(xFanQueue, &fanMessage, 0);
+
+	fanMessage = FAN_SET_SPEED_OFF;
 	xQueueSend(xFanQueue, &fanMessage, 0);
 
 	return POWER_STATE_STANDBY;
@@ -135,6 +139,11 @@ uint8_t enter_power_state_amps_on(void) {
 
 	temperatureMessage = TEMPERATURE_MONITOR_START;
 	xQueueSend(xTemperatureQueue, &temperatureMessage, 0);
+
+	fanMessage = FAN_SET_SPEED_NOMINAL;
+	xQueueSend(xFanQueue, &fanMessage, 0);
+
+	osDelay(1000); //wait for fan to spin up
 
 	fanMessage = FAN_MONITOR_START;
 	xQueueSend(xFanQueue, &fanMessage, 0);

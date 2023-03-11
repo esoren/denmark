@@ -99,6 +99,8 @@ void Error_Handler(void);
 #define LED_FAULT_6_GPIO_Port GPIOB
 #define LED_MONITOR_4_Pin GPIO_PIN_15
 #define LED_MONITOR_4_GPIO_Port GPIOB
+#define GENERAL_INPUT_1_Pin GPIO_PIN_6
+#define GENERAL_INPUT_1_GPIO_Port GPIOC
 #define LED_FAULT_5_Pin GPIO_PIN_7
 #define LED_FAULT_5_GPIO_Port GPIOC
 #define LED_FAULT_4_Pin GPIO_PIN_8

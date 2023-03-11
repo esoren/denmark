@@ -20,11 +20,11 @@ volatile uint32_t fan_rpm; //global variable continually set by the TIMER5 IC ca
 
 void StartFanTask(void const *argument) {
 
-	uint16_t target_fan_rpm = DEFAULT_FAN_RPM;
+	uint16_t target_fan_rpm = set_fan_rpm(0);
 
 	//start PWM output timer
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-	set_fan_rpm(target_fan_rpm);
+
 
 	//start timer for input compare frequency measurement
 	HAL_TIM_Base_Start_IT(&htim5);
@@ -46,13 +46,28 @@ void StartFanTask(void const *argument) {
 		if (uxQueueMessagesWaiting(xFanQueue) > 0) {
 			xStatus = xQueueReceive(xFanQueue, &fanMessage, 0);
 			if (xStatus == pdPASS) {
-				if(fanMessage == FAN_MONITOR_START) {
+				switch(fanMessage) {
+				case FAN_MONITOR_START:
 					fan_monitor_is_running = 1;
-				} else if(fanMessage == FAN_MONITOR_STOP) {
+					break;
+				case FAN_MONITOR_STOP:
 					fan_monitor_is_running = 0;
-				} else {
-					//should not reach here. Do nothing.
+					break;
+				case FAN_SET_SPEED_MAX:
+					target_fan_rpm = set_fan_rpm(MAX_FAN_RPM);
+					break;
+				case FAN_SET_SPEED_NOMINAL:
+					target_fan_rpm = set_fan_rpm(NOMINAL_FAN_RPM);
+					break;
+				case FAN_SET_SPEED_OFF:
+					target_fan_rpm = set_fan_rpm(0);
+					break;
+				default:
+					//should not reach here, do nothing
+					break;
 				}
+
+
 			}
 		}
 
@@ -61,7 +76,7 @@ void StartFanTask(void const *argument) {
 			displayMessage.displayCommand = SET_LED_STATE;
 			displayMessage.modify_mask = LED_MONITOR_FAN;
 
-			if(fan_rpm < DEFAULT_FAN_RPM - FAN_FAULT_MARGIN) {
+			if( (target_fan_rpm > FAN_FAULT_MARGIN) && (fan_rpm < (target_fan_rpm - FAN_FAULT_MARGIN)) ) {
 				displayMessage.new_values = 0xffff;
 				xQueueSend(xDisplayQueue, &displayMessage, 0);
 
@@ -82,32 +97,33 @@ void StartFanTask(void const *argument) {
 }
 
 
-void set_fan_rpm(uint16_t rpm) {
+uint16_t set_fan_rpm(uint16_t rpm) {
 
 	if(rpm == 0) {
 		TIM1->CCR1 = 0;  //handle the special case of turning off the fan first
-		return;
+		return 0;
 	}
 
-	rpm = rpm + RPM_ADJ; //apply an experimental offset (in Hz) to the target RPM
+
 
 	float duty_cycle_percent = 100;
 	uint16_t pwm_on_cycles = 0;
 
 	if(rpm > MAX_FAN_RPM) {
 		rpm = MAX_FAN_RPM;
+
 	}
 
-	duty_cycle_percent = (float)rpm / MAX_FAN_RPM * 100.0;
+	duty_cycle_percent = (float)(rpm + RPM_ADJ) / MAX_FAN_RPM * 100.0;
 
 	if(duty_cycle_percent < MIN_DUTY_CYCLE_PERCENT) {
-		duty_cycle_percent = MIN_DUTY_CYCLE_PERCENT;
+		duty_cycle_percent = MIN_DUTY_CYCLE_PERCENT; //todo: adjust rpm set value in this case
 	}
 
 	pwm_on_cycles = duty_cycle_percent / 100 * FAN_PERIOD_CYCLES;
 
 	TIM1->CCR1 = pwm_on_cycles;
-	return;
+	return rpm;
 
 }
 

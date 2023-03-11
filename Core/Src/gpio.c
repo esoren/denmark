@@ -73,9 +73,9 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(MUTE_MF_AMP_GPIO_Port, MUTE_MF_AMP_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pins : PCPin PCPin PCPin PCPin
-                           PCPin */
+                           PCPin PCPin */
   GPIO_InitStruct.Pin = BUTTON5_INPUT_Pin|BUTTON4_INPUT_Pin|BUTTON3_INPUT_Pin|STANDBY_PROTECT_LF_INPUT_Pin
-                          |SOFTCLIP_LF_AMP_INPUT_Pin;
+                          |GENERAL_INPUT_1_Pin|SOFTCLIP_LF_AMP_INPUT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
