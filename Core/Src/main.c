@@ -24,6 +24,7 @@
 #include "i2c.h"
 #include "tim.h"
 #include "gpio.h"
+#include "infrared.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -97,13 +98,12 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM5_Init();
+
   /* USER CODE BEGIN 2 */
   setup_ir_transmitter();
 
-  while(1) {
-      ir_send_message(0x175);
-  }
-  /* USER CODE END 2 */
+
+    /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
   MX_FREERTOS_Init();

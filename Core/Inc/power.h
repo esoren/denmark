@@ -16,6 +16,8 @@ void set_clear_amp_mute(uint8_t amplifier, uint8_t mute_state);
 uint8_t enter_power_state_amps_on(void);
 uint8_t enter_power_state_standby(void);
 
+#define DSP_POWERUP_DELAY_MS 4500
+
 enum {
 	POWER_STATE_PUP_SEQUENCE,
 	POWER_STATE_STANDBY,

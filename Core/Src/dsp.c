@@ -11,8 +11,12 @@
 #include "freertos.h"
 #include "queue.h"
 #include "fram.h"
+#include "infrared.h"
+#include "gpio.h"
+#include "power.h"
 
 extern QueueHandle_t xDisplayQueue;
+
 
 volatile enum E_dsp_state current_dsp_state = DSP_MODE_1;
 
@@ -23,36 +27,26 @@ volatile enum E_dsp_state current_dsp_state = DSP_MODE_1;
 void next_dsp_mode() {
 
 
-	displayMessage_t displayMessage;
-	displayMessage.displayCommand = SET_LED_STATE;
-	displayMessage.modify_mask = 0 | (LED_DSP_1 | LED_DSP_2 | LED_DSP_3 | LED_DSP_4);
-
-
  	switch(current_dsp_state) {
         case DSP_MODE_1:
-        	displayMessage.new_values = LED_DSP_2;
-            current_dsp_state = DSP_MODE_2;
+        	set_dsp_mode(DSP_MODE_2);
             break;
 
         case DSP_MODE_2:
-        	displayMessage.new_values = LED_DSP_3;
-            current_dsp_state = DSP_MODE_3;
+        	set_dsp_mode(DSP_MODE_3);
             break;
 
         case DSP_MODE_3:
-        	displayMessage.new_values = LED_DSP_4;
-            current_dsp_state = DSP_MODE_4;
+        	set_dsp_mode(DSP_MODE_4);
             break;
         case DSP_MODE_4:
+        	set_dsp_mode(DSP_MODE_1);
+        	break;
 
-        	displayMessage.new_values = LED_DSP_1;
-            current_dsp_state = DSP_MODE_1;
-            break;
+
     }
 
- 	xQueueSend(xDisplayQueue, &displayMessage, 0);
- 	send_ir_dsp_command(current_dsp_state);
- 	fram_write_dsp_mode(current_dsp_state);
+
 }
 
 
@@ -87,9 +81,21 @@ void set_dsp_mode(uint8_t new_dsp_state) {
     }
 
  	xQueueSend(xDisplayQueue, &displayMessage, 0);
+
+
+
+ 	set_clear_amp_mute(HF_AMP, MUTE_ON);
+ 	set_clear_amp_mute(MF_AMP, MUTE_ON);
+ 	set_clear_amp_standby(LF_AMP, STANDBY_ON);
+
+
  	send_ir_dsp_command(current_dsp_state);
  	fram_write_dsp_mode(current_dsp_state);
+ 	wait_for_dsp_load_blocking(current_dsp_state);
 
+ 	set_clear_amp_standby(LF_AMP, STANDBY_OFF); //todo: check this, does it impact the pup sequence? Maybe need to restore to the previous state
+ 	set_clear_amp_mute(HF_AMP, MUTE_OFF);
+ 	set_clear_amp_mute(MF_AMP, MUTE_OFF);
 }
 
 /* The DSP functions are implemented on a minidsp 2x4 HD.
@@ -100,6 +106,59 @@ void set_dsp_mode(uint8_t new_dsp_state) {
  * for instance, at powerup.
  */
 void send_ir_dsp_command(int current_dsp_state) {
-	//todo: implement IR transmit functionality here
+
+	switch(current_dsp_state) {
+	case DSP_MODE_1:
+		ir_send_message(0, IR_CONFIG_1);
+		break;
+	case DSP_MODE_2:
+		ir_send_message(0, IR_CONFIG_2);
+		break;
+	case DSP_MODE_3:
+		ir_send_message(0, IR_CONFIG_3);
+		break;
+	case DSP_MODE_4:
+		ir_send_message(0, IR_CONFIG_4);
+		break;
+	}
+
+
 	return;
+}
+
+
+void wait_for_dsp_load_blocking(int current_dsp_state) {
+
+
+	for (int i = 0; i < DSP_LOAD_NUM_BLINKS; i++) {
+		switch(current_dsp_state) {
+			case DSP_MODE_1:
+				HAL_GPIO_WritePin(LED_MODE_1_GPIO_Port, LED_MODE_1_Pin, GPIO_PIN_RESET);
+				HAL_Delay(DSP_LOAD_BLINK_PERIOD_MS/2);
+				HAL_GPIO_WritePin(LED_MODE_1_GPIO_Port, LED_MODE_1_Pin, GPIO_PIN_RESET);
+				HAL_Delay(DSP_LOAD_BLINK_PERIOD_MS/2);
+				break;
+			case DSP_MODE_2:
+				HAL_GPIO_WritePin(LED_MODE_2_GPIO_Port, LED_MODE_2_Pin, GPIO_PIN_RESET);
+				HAL_Delay(DSP_LOAD_BLINK_PERIOD_MS/2);
+				HAL_GPIO_WritePin(LED_MODE_2_GPIO_Port, LED_MODE_2_Pin, GPIO_PIN_RESET);
+				HAL_Delay(DSP_LOAD_BLINK_PERIOD_MS/2);
+				break;
+			case DSP_MODE_3:
+				HAL_GPIO_WritePin(LED_MODE_3_GPIO_Port, LED_MODE_3_Pin, GPIO_PIN_RESET);
+				HAL_Delay(DSP_LOAD_BLINK_PERIOD_MS/2);
+				HAL_GPIO_WritePin(LED_MODE_3_GPIO_Port, LED_MODE_3_Pin, GPIO_PIN_RESET);
+				HAL_Delay(DSP_LOAD_BLINK_PERIOD_MS/2);
+				break;
+			case DSP_MODE_4:
+				HAL_GPIO_WritePin(LED_MODE_4_GPIO_Port, LED_MODE_4_Pin, GPIO_PIN_RESET);
+				HAL_Delay(DSP_LOAD_BLINK_PERIOD_MS/2);
+				HAL_GPIO_WritePin(LED_MODE_4_GPIO_Port, LED_MODE_4_Pin, GPIO_PIN_RESET);
+				HAL_Delay(DSP_LOAD_BLINK_PERIOD_MS/2);
+				break;
+			}
+	}
+
+
+
 }

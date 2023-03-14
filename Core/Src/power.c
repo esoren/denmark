@@ -14,6 +14,7 @@
 #include "power.h"
 #include "dsp.h"
 #include "gpio.h"
+#include "fram.h"
 
 extern QueueHandle_t xDisplayQueue;
 extern QueueHandle_t xTemperatureQueue;
@@ -171,7 +172,7 @@ void pup_sequence() {
 	displayMessage.new_values = 0xffff;
 	xQueueSend(xDisplayQueue, &displayMessage, 0);
 
-	osDelay(500); //wait for DSP to finish bootup
+	osDelay(DSP_POWERUP_DELAY_MS); //wait for DSP to finish bootup
 
 	set_dsp_mode(dsp_mode); //write DSP state
 	//write source select

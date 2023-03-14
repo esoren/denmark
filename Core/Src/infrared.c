@@ -31,30 +31,117 @@ void setup_ir_transmitter() {
 
 	DWT_Delay_Init();
 
+#ifdef IR_TRAINING
+	train_minidsp();
+#endif
 
+}
+
+#ifdef IR_TRAINING
+
+int train_minidsp() {
+	volatile int trainbreak = 0;
+
+	trainbreak = 0;
+	ir_send_message(0, IR_MASTER_MUTE);
+	HAL_Delay(100);
+	ir_send_message(0, IR_MASTER_MUTE);
+	HAL_Delay(100);
+
+	trainbreak = 0;
+	ir_send_message(0, IR_VOLUME_UP);
+	HAL_Delay(100);
+	ir_send_message(0, IR_VOLUME_UP);
+	HAL_Delay(100);
+
+	trainbreak = 0;
+	ir_send_message(0, IR_VOLUME_DOWN);
+	HAL_Delay(100);
+	ir_send_message(0, IR_VOLUME_DOWN);
+	HAL_Delay(100);
+
+	trainbreak = 0;
+	ir_send_message(0, IR_ANALOG);
+	HAL_Delay(100);
+	ir_send_message(0, IR_ANALOG);
+	HAL_Delay(100);
+
+	trainbreak = 0;
+	ir_send_message(0, IR_TOSLINK);
+	HAL_Delay(100);
+	ir_send_message(0, IR_TOSLINK);
+	HAL_Delay(100);
+
+	trainbreak = 0;
+	ir_send_message(0, IR_USB);
+	HAL_Delay(100);
+	ir_send_message(0, IR_USB);
+	HAL_Delay(100);
+
+	trainbreak = 0;
+	ir_send_message(0, IR_CONFIG_1);
+	HAL_Delay(100);
+	ir_send_message(0, IR_CONFIG_1);
+	HAL_Delay(100);
+
+	trainbreak = 0;
+	ir_send_message(0, IR_CONFIG_2);
+	HAL_Delay(100);
+	ir_send_message(0, IR_CONFIG_2);
+	HAL_Delay(100);
+
+	trainbreak = 0;
+	ir_send_message(0, IR_CONFIG_3);
+	HAL_Delay(100);
+	ir_send_message(0, IR_CONFIG_3);
+	HAL_Delay(100);
+
+	trainbreak = 0;
+	ir_send_message(0, IR_CONFIG_4);
+	HAL_Delay(100);
+	ir_send_message(0, IR_CONFIG_4);
+	HAL_Delay(100);
+
+	trainbreak = 0;
+
+	return trainbreak;
+}
+
+#endif
+
+void ir_send_message(uint8_t addr, uint8_t cmd) {
+
+
+	HAL_Delay(1);
+
+	ir_turn_on_carrier();
+	DWT_Delay_us(9000);
+	ir_turn_off_carrier();
+	DWT_Delay_us(4500);
+
+
+
+	ir_send_byte(addr);
+	ir_send_byte(~addr);
+	ir_send_byte(cmd);
+	ir_send_byte(~cmd);
+
+	ir_send_zero(); //final pulse
+	ir_turn_off_carrier();
 
 }
 
 
-void ir_send_message(uint16_t payload) {
-
-	HAL_Delay(1);
-
-	payload = payload & 0x37ff; //clear the top two bits and the toggle bit
-	payload |= 0x3000; //set the start bits
-
-	for(int i = 13; i >= 0; i--) {
+void ir_send_byte(uint8_t payload) {
+	for(int i = 0; i < 8; i++) {
 		if((payload >> i) & 0x01) {
 			ir_send_one();
 		} else {
 			ir_send_zero();
 		}
 	}
-
-	ir_turn_off_carrier();
-
+	return;
 }
-
 
 void ir_turn_off_carrier() {
 
@@ -88,16 +175,16 @@ void ir_turn_on_carrier() {
 
 void ir_send_zero() {
 	ir_turn_on_carrier();
-	DWT_Delay_us(889);
+	DWT_Delay_us(562);
 	ir_turn_off_carrier();
-	DWT_Delay_us(889);
+	DWT_Delay_us(563);
 }
 
 void ir_send_one() {
-	ir_turn_off_carrier();
-	DWT_Delay_us(889);
 	ir_turn_on_carrier();
-	DWT_Delay_us(889);
+	DWT_Delay_us(562);
+	ir_turn_off_carrier();
+	DWT_Delay_us(1688);
 
 }
 
