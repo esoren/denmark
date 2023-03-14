@@ -1,0 +1,6 @@
+
+*.bak
+Debug/
+Middlewares/
+Core/Inc/Backup/
+Core/Src/Backup/
