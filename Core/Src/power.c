@@ -113,6 +113,10 @@ uint8_t enter_power_state_standby(void) {
 	return POWER_STATE_STANDBY;
 }
 
+
+
+
+
 uint8_t enter_power_state_amps_on(void) {
 
 	displayMessage_t displayMessage;
@@ -163,7 +167,7 @@ void pup_sequence() {
 	displayMessage.modify_mask = LED_MONITOR_OVERTEMP;
 	displayMessage.new_values = 0xffff;
 	xQueueSend(xDisplayQueue, &displayMessage, 0);
-	osDelay(500);
+	osDelay(DSP_POWERUP_DELAY_MS/2);
 
 	dsp_mode = fram_read_dsp_mode();
 	// load source select from FRAM
@@ -172,7 +176,7 @@ void pup_sequence() {
 	displayMessage.new_values = 0xffff;
 	xQueueSend(xDisplayQueue, &displayMessage, 0);
 
-	osDelay(DSP_POWERUP_DELAY_MS); //wait for DSP to finish bootup
+	osDelay(DSP_POWERUP_DELAY_MS/2); //wait for DSP to finish bootup
 
 	set_dsp_mode(dsp_mode); //write DSP state
 	//write source select
@@ -239,6 +243,72 @@ void set_clear_amp_standby(uint8_t amplifier, uint8_t standby_state) {
 	return;
 
 }
+
+
+//todo: consider re-writing this to use the readback state of the standby pin
+uint8_t get_amp_standby_state(uint8_t amplifier) {
+	switch(amplifier) {
+
+		case LF_AMP:
+			if(HAL_GPIO_ReadPin(STANDBY_LF_AMP_OUTPUT_GPIO_Port, STANDBY_LF_AMP_OUTPUT_Pin) == GPIO_PIN_SET) {
+				return STANDBY_ON;
+			} else {
+				return STANDBY_OFF;
+			}
+			break;
+
+		case MF_AMP:
+			if(HAL_GPIO_ReadPin(STANDBY_MF_AMP_GPIO_Port, STANDBY_MF_AMP_Pin) == GPIO_PIN_SET) {
+				return STANDBY_ON;
+			} else {
+				return STANDBY_OFF;
+			}
+			break;
+
+
+		case HF_AMP:
+			if(HAL_GPIO_ReadPin(STANDBY_HF_AMP_GPIO_Port, STANDBY_HF_AMP_Pin) == GPIO_PIN_SET) {
+				return STANDBY_ON;
+			} else {
+				return STANDBY_OFF;
+			}
+			break;
+
+		}
+
+		return STANDBY_ON; //should not reach here
+}
+
+
+//todo: consider re-writing this to use the readback state of the standby pin
+uint8_t get_amp_mute_state(uint8_t amplifier) {
+	switch(amplifier) {
+
+		case LF_AMP:
+			//should not reach here, LF_AMP does not support mute
+			break;
+
+		case MF_AMP:
+			if(HAL_GPIO_ReadPin(MUTE_MF_AMP_GPIO_Port, MUTE_MF_AMP_Pin) == GPIO_PIN_SET) {
+				return MUTE_ON;
+			} else {
+				return MUTE_OFF;
+			}
+			break;
+
+		case HF_AMP:
+			if(HAL_GPIO_ReadPin(MUTE_HF_AMP_GPIO_Port, MUTE_HF_AMP_Pin) == GPIO_PIN_SET) {
+				return MUTE_ON;
+			} else {
+				return MUTE_OFF;
+			}
+			break;
+
+		}
+
+		return MUTE_ON;
+}
+
 
 void set_clear_amp_mute(uint8_t amplifier, uint8_t mute_state) {
 	switch(amplifier) {
