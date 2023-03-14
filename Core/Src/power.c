@@ -129,16 +129,14 @@ uint8_t enter_power_state_amps_on(void) {
 	xQueueSend(xDisplayQueue, &displayMessage, 0);
 	osDelay(100);
 
-	set_clear_amp_standby(LF_AMP, STANDBY_OFF); //power up LF and power supply first
-
-	osDelay(500);
 
 	set_clear_amp_standby(HF_AMP, STANDBY_OFF);
 	set_clear_amp_standby(MF_AMP, STANDBY_OFF);
 
-
 	osDelay(400);
 
+	set_clear_amp_standby(LF_AMP, STANDBY_OFF);
+	osDelay(200);
 	set_clear_amp_mute(HF_AMP, MUTE_OFF);
 	set_clear_amp_mute(MF_AMP, MUTE_OFF);
 
