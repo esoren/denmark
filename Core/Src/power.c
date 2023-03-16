@@ -5,6 +5,7 @@
  *      Author: Eric
  */
 
+#include <stdio.h>
 #include "cmsis_os.h"
 #include "FreeRTOS.h"
 #include "temperature.h"
@@ -110,6 +111,9 @@ uint8_t enter_power_state_standby(void) {
 	fanMessage = FAN_SET_SPEED_OFF;
 	xQueueSend(xFanQueue, &fanMessage, 0);
 
+
+	printf("Entering POWER_STATE_STANDBY\n");
+
 	return POWER_STATE_STANDBY;
 }
 
@@ -151,6 +155,7 @@ uint8_t enter_power_state_amps_on(void) {
 	fanMessage = FAN_MONITOR_START;
 	xQueueSend(xFanQueue, &fanMessage, 0);
 
+	printf("Entering POWER_STATE_AMPS_ON\n");
 	return POWER_STATE_AMPS_ON;
 }
 

@@ -18,6 +18,11 @@ QueueHandle_t xTemperatureQueue;
 
 extern QueueHandle_t xDisplayQueue;
 
+//these global variables are only used for SWV data tracing to monitor temperatures
+
+volatile float therm1_global;
+volatile float therm2_global;
+volatile float therm3_global;
 
 void StartTemperatureTask(void const *argument) {
 	uint32_t adc_values[3];
@@ -53,11 +58,18 @@ void StartTemperatureTask(void const *argument) {
 			}
 		}
 
+		therm1 = convert_adc_count_to_degrees_celcius(adc_values[0], T1_BETA);
+		therm1_global = therm1;
+
+		therm2 = convert_adc_count_to_degrees_celcius(adc_values[1], T2_BETA);
+		therm2_global = therm2;
+
+		therm3 = convert_adc_count_to_degrees_celcius(adc_values[2], T3_BETA);
+		therm3_global = therm3;
+
 		if(temperature_monitor_is_running) {
 
-			therm1 = convert_adc_count_to_degrees_celcius(adc_values[0], T1_BETA);
-			therm2 = convert_adc_count_to_degrees_celcius(adc_values[1], T2_BETA);
-			therm3 = convert_adc_count_to_degrees_celcius(adc_values[2], T3_BETA);
+
 
 			displayMessage.displayCommand = SET_LED_STATE;
 			displayMessage.modify_mask = LED_MONITOR_OVERTEMP;
@@ -83,6 +95,8 @@ void StartTemperatureTask(void const *argument) {
 			if( therm3 > T3_OVERHEAT_THRESH ) {
 				set_clear_fault_flags(FAULT_LF_TEMP, 1);
 			}
+
+
 
 			osDelay(TEMPERATURE_SAMPLE_TIME_MS);
 

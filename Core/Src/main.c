@@ -170,6 +170,17 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 
+//from embedblog.eu/?p=673
+//The _write function is used by printf. Overloading it will send printf characters over the SWV interface
+
+int _write(int file, char *ptr, int len)
+{
+    for (int DataIdx = 0; DataIdx < len; DataIdx++)
+        ITM_SendChar(*ptr++);
+
+    return len;
+}
+
 /* USER CODE END 4 */
 
 /**
